@@ -13,9 +13,9 @@ MAINTAINER Jeremy Coatelen <dash0@protonmail.com>
 # All other dependencies are more or less needed by building phase of OpenCV.
 # The last "apt-get clean" command is needed to reduce Docker image size.
 #
-RUN apt-get update && apt-get upgrade -y \
-&& apt-get install software-properties-common -y && add-apt-repository ppa:saiarcot895/myppa && apt-get update && apt-get -y install apt-fast \
-&& apt-fast install -y \
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get upgrade -y \
+&& DEBIAN_FRONTEND=noninteractive apt-get install software-properties-common -y && add-apt-repository ppa:saiarcot895/myppa && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y install apt-fast \
+&& DEBIAN_FRONTEND=noninteractive apt-fast install -y \
 build-essential cmake git pkg-config \
 libgtk2.0-dev libgtk-3-dev libavcodec-dev libavformat-dev libswscale-dev \
 python-dev python2.7-dev python3.4-dev python-numpy python3-numpy \
@@ -25,7 +25,7 @@ libopenvg1-mesa-dev libglu1-mesa-dev \
 libgtkglext1 libgtkglext1-dev \
 openjdk-7-jdk ant \
 vtk6 libvtk6-dev \
-&& apt-get clean
+&& DEBIAN_FRONTEND=noninteractive apt-get clean
 
 #
 # Git clone the repo from OpenCV official repository on GitHub.
