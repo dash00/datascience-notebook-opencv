@@ -4,6 +4,11 @@ FROM jupyter/datascience-notebook
 MAINTAINER Jeremy Coatelen <dash0@protonmail.com>
 
 #
+# The following lines of code have been picked up from jerrytian/docker-ubuntu-14.04-opencv-git docker image files
+# https://hub.docker.com/r/jerrytian/docker-ubuntu-14.04-opencv-git/~/dockerfile/
+#
+
+#
 # Utility "apt-fast" is installed by default just to accelerate installl progress.
 # All other dependencies are more or less needed by building phase of OpenCV.
 # The last "apt-get clean" command is needed to reduce Docker image size.
