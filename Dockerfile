@@ -54,5 +54,4 @@ RUN cmake -D CMAKE_BUILD_TYPE=Release -D WITH_FFMPEG=OFF -D CMAKE_INSTALL_PREFIX
 # Let python(both v2 and v3) can find the newly install OpenCV modules.
 #
 RUN echo '/opt/lib/python2.7/dist-packages/'>/usr/lib/python2.7/dist-packages/cv2.pth && echo '/opt/lib/python3.4/dist-packages/'>/usr/lib/python3/dist-packages/cv2.pth
-Source Repository
-  jerryrt/docker_ubuntu_14.04-opencv-git-latest
+
