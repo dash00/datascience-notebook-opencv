@@ -1,62 +1,113 @@
-
 FROM jupyter/datascience-notebook
 
 MAINTAINER Jeremy Coatelen <dash0@protonmail.com>
 
-#
-# The following lines of code have been picked up from jerrytian/docker-ubuntu-14.04-opencv-git docker image files
-# https://hub.docker.com/r/jerrytian/docker-ubuntu-14.04-opencv-git/~/dockerfile/
-#
-
+##
+## Dockerfile based on trafferty/docker-ipython-opencv
+##
+##
 
 USER root
 
+# Install opencv prerequisites...
+RUN apt-get update -qq && apt-get install -y --force-yes \
+    curl \
+    git \
+    g++ \
+    autoconf \
+    automake \
+    build-essential \
+    checkinstall \
+    cmake \
+    pkg-config \
+    yasm \
+    libtiff5-dev \
+    libpng-dev \
+    libjpeg-dev \
+    libjasper-dev \
+    libavcodec-dev \
+    libavformat-dev \
+    libswscale-dev \
+    libdc1394-22-dev \
+    libxine2-dev \
+    libgstreamer0.10-dev \
+    libgstreamer-plugins-base0.10-dev \
+    libv4l-dev \
+    libtbb-dev \
+    libgtk2.0-dev \
+    libmp3lame-dev \
+    libopencore-amrnb-dev \
+    libopencore-amrwb-dev \
+    libtheora-dev \
+    libvorbis-dev \
+    libxvidcore-dev \
+    libtool \
+    v4l-utils \
+    default-jdk \
+    wget \
+    tmux \
+    libqt4-dev \
+    libphonon-dev \
+    libxml2-dev \
+    libxslt1-dev \
+    qtmobility-dev \
+    libqtwebkit-dev \
+    unzip; \
+    apt-get clean
+
+# Build OpenCV 3.x
+# =================================
+WORKDIR /usr/local/src
+RUN git clone --branch 3.1.0 --depth 1 https://github.com/Itseez/opencv.git
+RUN git clone --branch 3.1.0 --depth 1 https://github.com/Itseez/opencv_contrib.git
+RUN mkdir -p opencv/release
+WORKDIR /usr/local/src/opencv/release
+RUN cmake -D CMAKE_BUILD_TYPE=RELEASE \
+          -D CMAKE_INSTALL_PREFIX=/usr/local \
+          -D WITH_TBB=ON \
+          -D BUILD_PYTHON_SUPPORT=ON \
+          -D WITH_V4L=ON \
+#          -D INSTALL_C_EXAMPLES=ON \     bug w/ tag=3.1.0: cmake has error
+          -D INSTALL_PYTHON_EXAMPLES=ON \
+          -D BUILD_EXAMPLES=ON \
+          -D BUILD_DOCS=ON \
+          -D OPENCV_EXTRA_MODULES_PATH=/usr/local/src/opencv_contrib/modules \
+          -D WITH_XIMEA=YES \
+#          -D WITH_QT=YES \
+          -D WITH_FFMPEG=YES \
+          -D WITH_PVAPI=YES \
+          -D WITH_GSTREAMER=YES \
+          -D WITH_TIFF=YES \
+          -D WITH_OPENCL=YES \
+          -D PYTHON2_EXECUTABLE=/opt/conda/envs/python2/bin/python \
+          -D PYTHON2_INCLUDE_DIR=/opt/conda/envs/python2/include/python2.7 \
+          -D PYTHON2_LIBRARIES=/opt/conda/envs/python2/lib/libpython2.7.so \
+          -D PYTHON2_PACKAGES_PATH=/opt/conda/envs/python2/lib/python2.7/site-packages \
+          -D PYTHON2_NUMPY_INCLUDE_DIRS=/opt/conda/envs/python2/lib/python2.7/site-packages/numpy/core/include/ \
+          -D BUILD_opencv_python3=ON \
+          -D PYTHON3_EXECUTABLE=/opt/conda/bin/python \
+          -D PYTHON3_INCLUDE_DIR=/opt/conda/include/python3.4m/ \
+          -D PYTHON3_LIBRARY=/opt/conda/lib/libpython3.so \
+          -D PYTHON_LIBRARY=/opt/conda/lib/libpython3.so \
+          -D PYTHON3_PACKAGES_PATH=/opt/conda/lib/python3.4/site-packages \
+          -D PYTHON3_NUMPY_INCLUDE_DIRS=/opt/conda/lib/python3.4/site-packages/numpy/core/include/ \
+          ..
+RUN make -j4
+RUN make install
+RUN sh -c 'echo "/usr/local/lib" > /etc/ld.so.conf.d/opencv.conf'
+RUN ldconfig
 #
-# Utility "apt-fast" is installed by default just to accelerate installl progress.
-# All other dependencies are more or less needed by building phase of OpenCV.
-# The last "apt-get clean" command is needed to reduce Docker image size.
-#
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get upgrade -y \
-&& DEBIAN_FRONTEND=noninteractive apt-get install software-properties-common -y && add-apt-repository ppa:saiarcot895/myppa && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y install apt-fast \
-&& DEBIAN_FRONTEND=noninteractive apt-fast install -y \
-build-essential cmake git pkg-config \
-libgtk2.0-dev libgtk-3-dev libavcodec-dev libavformat-dev libswscale-dev \
-python-dev python2.7-dev python3.4-dev python-numpy python3-numpy \
-libtbb2 libtbb-dev libjpeg-dev libpng-dev libtiff-dev libjasper-dev \
-libdc1394-22-dev libv4l-0 libv4l-dev libgl1-mesa-dev libgles1-mesa-dev libgles2-mesa-dev \
-libopenvg1-mesa-dev libglu1-mesa-dev \
-libgtkglext1 libgtkglext1-dev \
-openjdk-7-jdk ant \
-vtk6 libvtk6-dev \
-&& DEBIAN_FRONTEND=noninteractive apt-get clean
+## Additional python modules
+RUN /opt/conda/envs/python2/bin/pip install imutils
+RUN /opt/conda/bin/pip install imutils
+
+## =================================
+
+## Post install mods:
+
+# Bug in Anaconda distribution causes `GLIBC_2.15' not found error. Here is workaround:
+Run mv /opt/conda/lib/libm.so /opt/conda/lib/libmXXX.so
+Run mv /opt/conda/lib/libm.so.6 /opt/conda/lib/libm.so.6XXX
+
 
 USER jovyan
-
-#
-# Git clone the repo from OpenCV official repository on GitHub.
-#
-RUN mkdir /opt/opencv-build && cd /opt/opencv-build \
-&& git clone https://github.com/Itseez/opencv && cd opencv \
-&& git checkout master && mkdir build
-
-WORKDIR /opt/opencv-build/opencv/build
-
-ENV JAVA_HOME /usr/lib/jvm/java-1.7.0-openjdk-amd64
-
-#
-# OpenCV repository is kept but all building intermediate files are removed.
-# Installable path is set to "/opt".
-#
-# "FFMPEG" is an optional "I/O" part of OpenCV, since it generates a lot of
-# error when building with it, it is disabled explicitly now.
-#
-# All other dependencies is using the default settings from CMake file of OpenCV.
-#
-RUN cmake -D CMAKE_BUILD_TYPE=Release -D WITH_FFMPEG=OFF -D CMAKE_INSTALL_PREFIX=/opt .. \
-&& make -j2 && make install && make clean && cd .. && rm -rf build
-
-#
-# Let python(both v2 and v3) can find the newly install OpenCV modules.
-#
-RUN echo '/opt/lib/python2.7/dist-packages/'>/usr/lib/python2.7/dist-packages/cv2.pth && echo '/opt/lib/python3.4/dist-packages/'>/usr/lib/python3/dist-packages/cv2.pth
-
