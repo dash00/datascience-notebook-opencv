@@ -8,6 +8,9 @@ MAINTAINER Jeremy Coatelen <dash0@protonmail.com>
 # https://hub.docker.com/r/jerrytian/docker-ubuntu-14.04-opencv-git/~/dockerfile/
 #
 
+
+USER root
+
 #
 # Utility "apt-fast" is installed by default just to accelerate installl progress.
 # All other dependencies are more or less needed by building phase of OpenCV.
@@ -26,6 +29,8 @@ libgtkglext1 libgtkglext1-dev \
 openjdk-7-jdk ant \
 vtk6 libvtk6-dev \
 && DEBIAN_FRONTEND=noninteractive apt-get clean
+
+USER jovyan
 
 #
 # Git clone the repo from OpenCV official repository on GitHub.
