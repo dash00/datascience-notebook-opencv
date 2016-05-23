@@ -25,6 +25,7 @@ RUN apt-get update -qq && apt-get install -y --force-yes \
     libpng-dev \
     libjpeg-dev \
     libjasper-dev \
+    libhdf5-dev \
     libavcodec-dev \
     libavformat-dev \
     libswscale-dev \
