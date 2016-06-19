@@ -61,7 +61,8 @@ RUN wget https://github.com/Itseez/opencv/archive/3.0.0.zip -O opencv3.zip \
     && cd ../.. \
     && rm -rf opencv opencv_contrib
 
-RUN chown -R jovyan:users /notebooks/
+RUN mkdir /notebooks
+RUN chown -R jovyan:users /notebooks
 
 ## Switch back to jupyter user
 USER jovyan
